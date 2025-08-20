@@ -6,7 +6,7 @@ Este sistema busca gestionar de manera sencilla ventas, inventario y reportes di
 
 ---
 
-## ⚙️ Tecnologías usadas
+## ⚙️ Tecnologías usadas (Frontend)
 - [Next.js](https://nextjs.org/) (App Router)
 - [React](https://react.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)  
@@ -24,3 +24,4 @@ Mini-Sistema-POS/
 │── docs/ # Documentación (historias de usuario, informes, etc.)
 │── tests/ # Pruebas
 │── README.md
+

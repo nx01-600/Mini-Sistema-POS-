@@ -25,5 +25,3 @@ Mini-Sistema-POS/
 - tests/ # Pruebas
 - README.md
 
-
-hola

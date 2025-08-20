@@ -18,10 +18,11 @@ Este sistema busca gestionar de manera sencilla ventas, inventario y reportes di
 ## 📂 Estructura del proyecto
 
 Mini-Sistema-POS/
-│── frontend/ # Aplicación en Next.js
-│── backend/ # Servicios y lógica de negocio (API)
-│── database/ # Scripts y modelos de la base de datos
-│── docs/ # Documentación (historias de usuario, informes, etc.)
-│── tests/ # Pruebas
-│── README.md
+- frontend/ # Aplicación en Next.js
+- backend/ # Servicios y lógica de negocio (API)
+- database/ # Scripts y modelos de la base de datos
+- docs/ # Documentación (historias de usuario, informes, etc.)
+- tests/ # Pruebas
+- README.md
+
 

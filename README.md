@@ -12,7 +12,7 @@ Este sistema busca gestionar de manera sencilla ventas, inventario y reportes di
 - [Tailwind CSS](https://tailwindcss.com/)  
 - [Node.js](https://nodejs.org/)  
 - [ESLint](https://eslint.org/)  
-
+- [Firebase](https://firebase.google.com/) (Auth, Firestore Database)
 ---
 
 ## 📂 Estructura del proyecto
@@ -24,4 +24,5 @@ Mini-Sistema-POS/
 - docs/ # Documentación (historias de usuario, informes, etc.)
 - tests/ # Pruebas
 - README.md
+
 

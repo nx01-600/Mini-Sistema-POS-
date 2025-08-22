@@ -5,7 +5,7 @@
 ### usuarios
 - uid (string, autogenerado)
 - nombre (string)
-- rol (string: "admin" | "vendedor")
+- rol (string: "admin" | "usuario")
 - email (string)
 
 ### productos
@@ -16,7 +16,6 @@
 
 ### ventas
 - id (string, autogenerado)
-- vendedorId (string -> referencia a usuarios)
 - productos (array de objetos { productoId, cantidad })
 - fecha (timestamp)
 - total (number)

@@ -107,8 +107,11 @@ export default function SignupLogin() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex justify-center items-start pt-16">
-      <div className="container mx-auto px-4">
-        <div className="w-full max-w-lg mx-auto bg-white rounded-lg overflow-visible shadow-2xl transition-all duration-500 flex flex-col">
+      <div className="container mx-auto px-4 ">
+        <div className={`w-full max-w-lg mx-auto bg-white rounded-lg overflow-hidden shadow-2xl transition-all duration-500 flex flex-col ${
+              tab === "signup" ? "min-h-[600px]" : "min-h-[500px]"
+            }`}>
+
           <div className="text-center py-6 bg-gray-800 text-white rounded-t-lg">
             <h1 className="text-3xl font-bold">Bienvenido</h1>
             <p className="mt-2 text-gray-300">Únete a nuestra comunidad</p>

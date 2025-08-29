@@ -8,11 +8,16 @@ const routes = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-gray-800 text-white h-screen flex flex-col">
-      <div className="p-6 text-2xl font-bold border-b border-gray-700">Cordes</div>
+    <aside
+      className="fixed left-0 top-0 w-64 bg-gray-800 text-white h-screen flex flex-col z-20"
+      style={{ height: "100vh" }}
+    >
+      <div className="p-6 text-2xl font-bold border-b border-gray-700">
+        MiniSistema POS
+      </div>
       <nav className="flex-1">
         <ul className="space-y-2 px-4 mt-4">
-          {routes.map(route => (
+          {routes.map((route) => (
             <li key={route.path}>
               <NavLink
                 to={route.path}

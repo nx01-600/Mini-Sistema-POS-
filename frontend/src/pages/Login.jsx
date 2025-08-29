@@ -114,7 +114,7 @@ export default function SignupLogin() {
 
           <div className="text-center py-6 bg-gray-800 text-white rounded-t-lg">
             <h1 className="text-3xl font-bold">Bienvenido</h1>
-            <p className="mt-2 text-gray-300">Únete a nuestra comunidad</p>
+            <p className="mt-2 text-gray-300">Ingresa al Mini-Sistema POS</p>
           </div>
           <div className="p-8 transition-all duration-500 flex-1">
             <div className="flex justify-center mb-6">

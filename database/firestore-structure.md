@@ -3,7 +3,6 @@
 ## Colecciones principales
 
 ### usuarios
-- uid (string, autogenerado)
 - nombre (string)
 - rol (string: "admin" | "usuario")
 - email (string)

@@ -10,17 +10,19 @@ export default function Dashboard() {
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [ventas, setVentas] = useState([]);
+  const [ventaIdFiltro, setVentaIdFiltro] = useState("");
 
   useEffect(() => {
     const db = getFirestore();
     Promise.all([
-      getDocs(collection(db, "usuarios")),
+      getDocs(collection(db, "users")),
       getDocs(collection(db, "productos")),
       getDocs(collection(db, "ventas"))
     ]).then(([usuariosSnap, productosSnap, ventasSnap]) => {
       setUsuarios(usuariosSnap.docs.map(doc => doc.data()));
       setProductos(productosSnap.docs.map(doc => doc.data()));
-      setVentas(ventasSnap.docs.map(doc => doc.data()));
+      // Guardar ventas con id de documento
+      setVentas(ventasSnap.docs.map(doc => ({ ...doc.data(), _docId: doc.id })));
     });
   }, []);
 
@@ -62,52 +64,41 @@ export default function Dashboard() {
   // Ingreso promedio por venta
   const ingresoPromedio = ventas.length ? (totalVentas / ventas.length) : 0;
 
-  // Usuarios por rol
-  const roles = usuarios.reduce((acc, u) => {
-    acc[u.rol] = (acc[u.rol] || 0) + 1;
-    return acc;
-  }, {});
-  const rolesData = Object.entries(roles).map(([rol, cantidad]) => ({ rol, cantidad }));
-
-  // Espaciado y scroll
+  // Visual soft y bonito
   return (
-    <div className="min-h-screen bg-gray-50 px-8 py-8 overflow-auto" style={{ paddingBottom: "48px" }}>
-      <h1 className="text-4xl font-bold text-gray-800 mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-100 px-8 py-8 overflow-auto" style={{ paddingBottom: "48px" }}>
+      <h1 className="text-4xl font-bold text-blue-800 mb-10 text-center drop-shadow">Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-10">
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
           <div className="text-3xl font-bold text-blue-600">${totalVentas.toLocaleString("es-CO")}</div>
-          <div className="text-gray-700 mt-2">Total Ventas</div>
+          <div className="text-blue-700 mt-2 font-medium">Total Ventas</div>
         </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
           <div className="text-3xl font-bold text-green-600">{productos.length}</div>
-          <div className="text-gray-700 mt-2">Productos</div>
+          <div className="text-blue-700 mt-2 font-medium">Productos</div>
         </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
           <div className="text-3xl font-bold text-purple-600">{usuarios.length}</div>
-          <div className="text-gray-700 mt-2">Usuarios</div>
+          <div className="text-blue-700 mt-2 font-medium">Usuarios</div>
         </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
           <div className="text-3xl font-bold text-yellow-600">${ingresoPromedio.toLocaleString("es-CO", {maximumFractionDigits: 0})}</div>
-          <div className="text-gray-700 mt-2">Ingreso Promedio por Venta</div>
+          <div className="text-blue-700 mt-2 font-medium">Ingreso Promedio por Venta</div>
         </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
           <div className="text-2xl font-bold text-cyan-600">{productoMasStock?.nombre || "-"}</div>
-          <div className="text-gray-700 mt-2">Producto con más stock</div>
-          <div className="text-lg text-gray-500">Stock: {productoMasStock?.stock || "-"}</div>
+          <div className="text-blue-700 mt-2 font-medium">Producto con más stock</div>
+          <div className="text-lg text-blue-400">Stock: {productoMasStock?.stock || "-"}</div>
         </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-          <div className="text-2xl font-bold text-pink-600">{ventaMasAlta?.id || "-"}</div>
-          <div className="text-gray-700 mt-2">Venta más alta</div>
-          <div className="text-lg text-gray-500">Total: ${ventaMasAlta?.total?.toLocaleString("es-CO") || "-"}</div>
-        </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-          <div className="text-2xl font-bold text-indigo-600">{rolesData.map(r => `${r.rol}: ${r.cantidad}`).join(", ")}</div>
-          <div className="text-gray-700 mt-2">Usuarios por Rol</div>
+        <div className="bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col items-center border border-blue-100">
+          <div className="text-2xl font-bold text-pink-600">{ventaMasAlta?._docId || "-"}</div>
+          <div className="text-blue-700 mt-2 font-medium">Venta más alta</div>
+          <div className="text-lg text-blue-400">Total: ${ventaMasAlta?.total?.toLocaleString("es-CO") || "-"}</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Ventas por Día</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+          <h2 className="text-xl font-semibold mb-4 text-blue-700">Ventas por Día</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={ventasPorDiaData}>
               <XAxis dataKey="fecha" />
@@ -117,8 +108,8 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Productos Más Vendidos</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+          <h2 className="text-xl font-semibold mb-4 text-blue-700">Productos Más Vendidos</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -140,9 +131,9 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Stock Actual</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+          <h2 className="text-xl font-semibold mb-4 text-blue-700">Stock Actual</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={stockData}>
               <XAxis dataKey="name" />
@@ -152,10 +143,19 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Detalle de Ventas Recientes</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+          <h2 className="text-xl font-semibold mb-4 text-blue-700">Detalle de Ventas Recientes</h2>
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Filtrar por ID de compra..."
+              value={ventaIdFiltro}
+              onChange={e => setVentaIdFiltro(e.target.value)}
+              className="border border-blue-200 rounded-lg px-4 py-2 w-full max-w-xs focus:ring-2 focus:ring-blue-300 bg-blue-50"
+            />
+          </div>
           <div className="overflow-auto max-h-64">
-            <table className="min-w-full text-left text-gray-700">
+            <table className="min-w-full text-left text-blue-900">
               <thead>
                 <tr>
                   <th className="font-semibold py-2">ID</th>
@@ -165,14 +165,18 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {ventas.slice(-10).reverse().map(v => (
-                  <tr key={v.id} className="border-b">
-                    <td className="py-2">{v.id}</td>
+                {ventas
+                  .filter(v => v._docId?.toLowerCase().includes(ventaIdFiltro.toLowerCase()))
+                  .slice(-10)
+                  .reverse()
+                  .map(v => (
+                  <tr key={v._docId} className="border-b">
+                    <td className="py-2">{v._docId}</td>
                     <td className="py-2">{v.fecha?.toDate ? v.fecha.toDate().toLocaleDateString("es-CO") : v.fecha.slice(0,10)}</td>
                     <td className="py-2">${v.total.toLocaleString("es-CO")}</td>
                     <td className="py-2">
                       {v.productos.map(p => (
-                        <span key={p.productoId} className="inline-block bg-gray-100 rounded px-2 py-1 mr-1">
+                        <span key={p.productoId} className="inline-block bg-blue-50 rounded px-2 py-1 mr-1">
                           {p.productoId} x{p.cantidad}
                         </span>
                       ))}

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider, db } from "../firebase";
-import { setDoc, doc, collection } from "firebase/firestore";
+import { setDoc, doc, collection, getDoc } from "firebase/firestore";
 
 // Traducción de errores comunes de Firebase
 function getFriendlyError(error) {
@@ -96,7 +96,23 @@ export default function SignupLogin() {
     setError("");
     setSuccess("");
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      if (user) {
+        // Solo crea el documento si no existe, para no sobreescribir el rol
+        const userDocRef = doc(collection(db, "users"), user.email);
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+          await setDoc(
+            userDocRef,
+            {
+              nombre: user.displayName || "",
+              rol: "usuario",
+              email: user.email
+            }
+          );
+        }
+      }
       setSuccess("¡Inicio de sesión con Google exitoso!");
       navigate("/dashboard");
     } catch (err) {

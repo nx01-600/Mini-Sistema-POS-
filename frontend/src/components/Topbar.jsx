@@ -4,22 +4,23 @@ import { auth } from "../firebase";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Dropdown, Menu, Button } from "antd";
 import { DownOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import { FaUser, FaUserShield } from "react-icons/fa";
 
 export default function Topbar() {
+  const [user, setUser] = useState(null);
+  const [rol, setRol] = useState(null);
   const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
         const db = getFirestore();
-        const userDocRef = doc(db, "users", user.email);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setDisplayName(userDoc.data().nombre || user.email || "Usuario");
-        } else {
-          setDisplayName(user.email || "Usuario");
-        }
+        const userDoc = await getDoc(doc(db, "users", u.email));
+        setRol(userDoc.exists() ? userDoc.data().rol : null);
+        setDisplayName(userDoc.data().nombre || u.email || "Usuario");
       } else {
+        setRol(null);
         setDisplayName("");
       }
     });
@@ -58,7 +59,14 @@ export default function Topbar() {
         <div className="flex items-center gap-2">
           <Dropdown overlay={menu} trigger={["click"]}>
             <Button type="text" className="flex items-center gap-2">
-              <UserOutlined className="text-xl" />
+              <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold">
+                {rol === "admin" ? "Admin" : "Usuario"}
+              </span>
+              {rol === "admin" ? (
+                <FaUserShield className="text-blue-600" title="Administrador" />
+              ) : (
+                <FaUser className="text-blue-400" title="Usuario" />
+              )}
               <span className="text-gray-700 font-medium">{displayName}</span>
               <DownOutlined />
             </Button>

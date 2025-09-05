@@ -5,6 +5,13 @@ import Topbar from "./components/Topbar.jsx";
 import TestFirebase from "./pages/TestFirebase.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Stock from "./pages/Stock";
+import ReportesVentas from "./pages/ReportesVentas.jsx";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
+import ComprasUsuario from "./pages/ComprasUsuario";
 
 // Layout para páginas protegidas
 function ProtectedLayout({ children }) {
@@ -13,7 +20,7 @@ function ProtectedLayout({ children }) {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Topbar />
-        <main className="p-6 bg-gray-50 min-h-screen">{children}</main>
+        <main className="flex-1 bg-gray-50">{children}</main>
       </div>
     </div>
   );
@@ -21,52 +28,109 @@ function ProtectedLayout({ children }) {
 
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/"; // ajusta si tu ruta de login es diferente
+  const isLoginPage = location.pathname === "/";
+  const [user, setUser] = useState(null);
+  const [rol, setRol] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        const userDoc = await getDoc(doc(db, "users", u.email));
+        setRol(userDoc.exists() ? userDoc.data().rol : null);
+      } else {
+        setRol(null);
+      }
+      setLoadingUser(false);
+    });
+    return () => unsub();
+  }, []);
+
+  if (loadingUser)
+    return (
+      <div className="flex items-center justify-center h-screen">Cargando...</div>
+    );
 
   return (
     <>
-      {!isLoginPage && <Sidebar />}
+      {!isLoginPage && <Sidebar rol={rol} />}
       {!isLoginPage && <Topbar />}
       <main
-        className="bg-gray-50"
+        className="bg-gray-50 h-screen overflow-auto"
         style={{
           marginLeft: !isLoginPage ? "256px" : 0,
           marginTop: !isLoginPage ? "64px" : 0,
-          minHeight: "calc(100vh - 64px)",
-          overflow: "auto",
         }}
       >
         <Routes>
           {/* Ruta raíz -> Login */}
           <Route path="/" element={<Login />} />
 
-          {/* Ruta protegida -> Dashboard */}
-          <Route
-            path="/dashboard/*"
-            element={
-              <ProtectedLayout>
-                <Dashboard />
-              </ProtectedLayout>
-            }
-          />
-          <Route
-            path="/test-firebase"
-            element={
-              <ProtectedLayout>
-                <TestFirebase />
-              </ProtectedLayout>
-            }
-          />
+          {/* Rutas para admin */}
+          {rol === "admin" && (
+            <>
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedLayout>
+                    <Dashboard />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/test-firebase"
+                element={
+                  <ProtectedLayout>
+                    <TestFirebase />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/stock"
+                element={
+                  <ProtectedLayout>
+                    <Stock />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/reportes-ventas"
+                element={
+                  <ProtectedLayout>
+                    <ReportesVentas />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/compras"
+                element={<ComprasUsuario user={user} />}
+              />
+              {/* Ruta no encontrada */}
+              <Route
+                path="*"
+                element={
+                  <ProtectedLayout>
+                    <NotFound />
+                  </ProtectedLayout>
+                }
+              />
+            </>
+          )}
 
-          {/* Ruta no encontrada */}
-          <Route
-            path="*"
-            element={
-              <ProtectedLayout>
-                <NotFound />
-              </ProtectedLayout>
-            }
-          />
+          {/* Rutas para usuario */}
+          {rol === "usuario" && (
+            <>
+              <Route
+                path="/compras"
+                element={<ComprasUsuario user={user} />}
+              />
+              <Route
+                path="*"
+                element={<ComprasUsuario user={user} />}
+              />
+            </>
+          )}
         </Routes>
       </main>
     </>

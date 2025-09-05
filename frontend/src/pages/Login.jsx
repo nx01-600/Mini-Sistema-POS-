@@ -56,25 +56,27 @@ export default function SignupLogin() {
     if (signupData.password !== signupData.confirmPassword) {
       setError("Las contraseñas no coinciden.");
       setLoading(false);
-      return;
     }
-    try {
-      await createUserWithEmailAndPassword(auth, signupData.email, signupData.password);
-      await setDoc(
-        doc(collection(db, "users"), signupData.email),
-        {
-          nombre: signupData.name,
-          rol: "usuario",
-          email: signupData.email
-        }
-      );
-      setSuccess("¡Cuenta creada exitosamente!");
-      navigate("/dashboard");
-    } catch (err) {
-      setError(getFriendlyError(err.message));
-    }
-    setLoading(false);
-  };
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, signupData.email, signupData.password);
+        const user = userCredential.user;
+        // Guardar el usuario en Firestore con el correo como ID
+        await setDoc(
+          doc(collection(db, "users"), user.email),
+          {
+            nombre: signupData.name,
+            rol: "usuario",
+            email: signupData.email
+          }
+        );
+        setSuccess("¡Cuenta creada exitosamente!");
+        setSignupData({ name: "", email: "", password: "", confirmPassword: "" });
+        navigate("/compras");
+      } catch (err) {
+        setError(getFriendlyError(err.message));
+      }
+      setLoading(false);
+    };
 
   const handleLogin = async e => {
     e.preventDefault();
@@ -82,9 +84,18 @@ export default function SignupLogin() {
     setError("");
     setSuccess("");
     try {
-      await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
+      const userCredential = await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
+      const user = userCredential.user;
+      // Leer el rol desde Firestore
+      const userDocRef = doc(collection(db, "users"), user.email);
+      const userDocSnap = await getDoc(userDocRef);
+      const rol = userDocSnap.exists() ? userDocSnap.data().rol : "usuario";
       setSuccess("¡Inicio de sesión exitoso!");
-      navigate("/dashboard");
+      if (rol === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/compras");
+      }
     } catch (err) {
       setError(getFriendlyError(err.message));
     }
@@ -112,9 +123,16 @@ export default function SignupLogin() {
             }
           );
         }
+        // Leer el rol desde Firestore
+        const userDocSnap2 = await getDoc(userDocRef);
+        const rol = userDocSnap2.exists() ? userDocSnap2.data().rol : "usuario";
+        setSuccess("¡Inicio de sesión con Google exitoso!");
+        if (rol === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/compras");
+        }
       }
-      setSuccess("¡Inicio de sesión con Google exitoso!");
-      navigate("/dashboard");
     } catch (err) {
       setError(getFriendlyError(err.message));
     }

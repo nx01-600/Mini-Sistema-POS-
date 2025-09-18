@@ -112,26 +112,33 @@ export default function SignupLogin() {
       if (user) {
         // Solo crea el documento si no existe, para no sobreescribir el rol
         const userDocRef = doc(collection(db, "users"), user.email);
-        const userDocSnap = await getDoc(userDocRef);
+        let rol = "usuario";
+        let nombre = user.displayName || "";
+        let userDocSnap = await getDoc(userDocRef);
         if (!userDocSnap.exists()) {
           await setDoc(
             userDocRef,
             {
-              nombre: user.displayName || "",
-              rol: "usuario",
+              nombre,
+              rol,
               email: user.email
             }
           );
-        }
-        // Leer el rol desde Firestore
-        const userDocSnap2 = await getDoc(userDocRef);
-        const rol = userDocSnap2.exists() ? userDocSnap2.data().rol : "usuario";
-        setSuccess("¡Inicio de sesión con Google exitoso!");
-        if (rol === "admin") {
-          navigate("/dashboard");
         } else {
-          navigate("/compras");
+          // Si ya existe, usa el rol y nombre guardados
+          const data = userDocSnap.data();
+          rol = data.rol || "usuario";
+          nombre = data.nombre || nombre;
         }
+        setSuccess("¡Inicio de sesión con Google exitoso!");
+        setTimeout(() => {
+          if (rol === "admin") {
+            navigate("/dashboard");
+          } else {
+            navigate("/compras");
+          }
+          window.location.reload();
+        }, 600);
       }
     } catch (err) {
       setError(getFriendlyError(err.message));

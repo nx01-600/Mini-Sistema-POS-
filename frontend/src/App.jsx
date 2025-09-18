@@ -37,12 +37,16 @@ function App() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const userDoc = await getDoc(doc(db, "users", u.email));
-        setRol(userDoc.exists() ? userDoc.data().rol : null);
+        // Esperar un pequeño tiempo para asegurar que Firestore ya guardó el usuario tras login Google
+        setTimeout(async () => {
+          const userDoc = await getDoc(doc(db, "users", u.email));
+          setRol(userDoc.exists() ? userDoc.data().rol : null);
+          setLoadingUser(false);
+        }, 300);
       } else {
         setRol(null);
+        setLoadingUser(false);
       }
-      setLoadingUser(false);
     });
     return () => unsub();
   }, []);

@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { collection, getDocs, doc, updateDoc, addDoc, Timestamp, arrayUnion } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, Timestamp, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { FaSearch, FaShoppingCart, FaTimes } from "react-icons/fa";
+import { addUserPurchaseNotification } from "../utils/notifications";
+import { addGlobalStockNotification } from "../utils/globalNotifications";
+import { FaSearch, FaShoppingCart, FaTimes, FaMoneyBillWave, FaCreditCard, FaUniversity } from "react-icons/fa";
+import { Modal, Radio, Spin, Button } from "antd";
+import { CheckCircleFilled, LoadingOutlined } from "@ant-design/icons";
+import "../styles/paymentModal.css";
 
 export default function ComprasUsuario({ user }) {
   const [productos, setProductos] = useState([]);
@@ -13,6 +18,12 @@ export default function ComprasUsuario({ user }) {
   const [precioMax, setPrecioMax] = useState("");
   const [showCarrito, setShowCarrito] = useState(false);
   const carritoRef = useRef();
+  
+  // Estados para el modal de método de pago
+  const [pagoModalVisible, setPagoModalVisible] = useState(false);
+  const [metodoPago, setMetodoPago] = useState("efectivo");
+  const [procesandoPago, setProcesandoPago] = useState(false);
+  const [pagoCompletado, setPagoCompletado] = useState(false);
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -75,7 +86,34 @@ export default function ComprasUsuario({ user }) {
     );
   };
 
-  const realizarCompra = async () => {
+  // Función para abrir el modal de pago
+  const abrirModalPago = () => {
+    if (carrito.length === 0) return;
+    setMensaje("");
+    setPagoModalVisible(true);
+    setMetodoPago("efectivo"); // Valor por defecto
+    setPagoCompletado(false);
+  };
+
+  // Función para procesar el pago y completar la compra
+  const procesarPago = async () => {
+    setProcesandoPago(true);
+    
+    // Simulamos un breve proceso de pago (1.5 segundos)
+    setTimeout(async () => {
+      setPagoCompletado(true);
+      
+      // Esperar 1 segundo más para mostrar la confirmación
+      setTimeout(async () => {
+        await finalizarCompra();
+        setProcesandoPago(false);
+        setPagoModalVisible(false);
+      }, 1500);
+    }, 1500);
+  };
+  
+  // Función para finalizar la compra después del pago
+  const finalizarCompra = async () => {
     if (carrito.length === 0) return;
     setMensaje("");
     // Verificar stock actualizado
@@ -90,11 +128,22 @@ export default function ComprasUsuario({ user }) {
       }
       productosActualizados.push({ ref, nuevoStock: prod.stock - item.cantidad });
     }
-    // Actualizar stock
+    // Actualizar stock y crear notificaciones para productos con stock 0
     for (const { ref, nuevoStock } of productosActualizados) {
+      // Actualizar el stock
       await updateDoc(ref, { stock: nuevoStock });
+      
+      // Si el stock llega a 0, crear una notificación global
+      if (nuevoStock === 0) {
+        const prodSnap = await getDoc(ref);
+        const nombre = prodSnap.exists() ? prodSnap.data().nombre : "";
+        
+        // Agregar notificación global con el id como clave
+        await addGlobalStockNotification(ref.id, nombre, "compra");
+        console.log("Notificación agregada para producto con stock 0 por compra:", nombre);
+      }
     }
-    // Guardar venta SOLO con productos, total y fecha
+    // Guardar venta con productos, total, fecha, id del usuario y método de pago
     const venta = {
       productos: carrito.map((p) => ({
         productoId: p.id,
@@ -104,15 +153,19 @@ export default function ComprasUsuario({ user }) {
       })),
       fecha: Timestamp.now(),
       total: carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0),
+      userId: user.email,
+      metodoPago: metodoPago // Guardamos el método de pago seleccionado
     };
     const ventaRef = await addDoc(collection(db, "ventas"), venta);
 
-    // Agregar la venta al arreglo "ventas" del usuario en users
+    // Agregar SOLO el id de la venta al arreglo "ventasIds" del usuario en users
     const userDocRef = doc(db, "users", user.email);
-    const ventaWithId = { ...venta, id: ventaRef.id };
     await updateDoc(userDocRef, {
-      ventas: arrayUnion(ventaWithId)
+      ventasIds: arrayUnion(ventaRef.id)
     });
+
+    // Notificación push al usuario por compra exitosa
+    await addUserPurchaseNotification(user.email, venta.productos, Date.now());
 
     setMensaje("¡Compra realizada con éxito!");
     setCarrito([]);
@@ -124,10 +177,122 @@ export default function ComprasUsuario({ user }) {
       productosArr.push({ id: docu.id, ...docu.data() });
     });
     setProductos(productosArr.filter(p => p.stock > 0));
+
+    // Refrescar notificaciones en topbar si existe window.actualizarNotificaciones
+    if (window.actualizarNotificaciones) {
+      window.actualizarNotificaciones();
+    }
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-100 relative">
+      {/* Modal de Método de Pago */}
+      <Modal
+        title={<div className="text-blue-700 text-xl">Seleccione método de pago</div>}
+        open={pagoModalVisible}
+        onCancel={() => !procesandoPago && setPagoModalVisible(false)}
+        footer={null}
+        centered
+        maskClosable={!procesandoPago}
+        closable={!procesandoPago}
+        className="payment-modal"
+      >
+        {!pagoCompletado ? (
+          <>
+            <div className="py-4">
+              {procesandoPago ? (
+                <div className="flex flex-col items-center justify-center p-6">
+                  <Spin 
+                    indicator={<LoadingOutlined style={{ fontSize: 36 }} spin />} 
+                    tip="Procesando pago..." 
+                    size="large"
+                  />
+                  <div className="mt-4 text-gray-600">
+                    Por favor espere mientras procesamos su pago con {' '}
+                    {metodoPago === 'efectivo' && 'Efectivo'}
+                    {metodoPago === 'tarjeta' && 'Tarjeta de Crédito'}
+                    {metodoPago === 'transferencia' && 'Transferencia Bancaria'}
+                  </div>
+                </div>
+              ) : (
+                <Radio.Group 
+                  onChange={(e) => setMetodoPago(e.target.value)} 
+                  value={metodoPago}
+                  className="w-full"
+                >
+                  <div className="space-y-4">
+                    <div className={`p-4 border rounded-xl cursor-pointer transition-all ${metodoPago === 'efectivo' ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}>
+                      <Radio value="efectivo" className="w-full">
+                        <div className="flex items-center ml-2">
+                          <FaMoneyBillWave className="text-green-600 text-xl mr-3" />
+                          <div>
+                            <div className="font-medium">Efectivo</div>
+                            <div className="text-xs text-gray-500">Pago en caja</div>
+                          </div>
+                        </div>
+                      </Radio>
+                    </div>
+                    
+                    <div className={`p-4 border rounded-xl cursor-pointer transition-all ${metodoPago === 'tarjeta' ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}>
+                      <Radio value="tarjeta" className="w-full">
+                        <div className="flex items-center ml-2">
+                          <FaCreditCard className="text-blue-600 text-xl mr-3" />
+                          <div>
+                            <div className="font-medium">Tarjeta de Crédito/Débito</div>
+                            <div className="text-xs text-gray-500">Visa, Mastercard, etc.</div>
+                          </div>
+                        </div>
+                      </Radio>
+                    </div>
+                    
+                    <div className={`p-4 border rounded-xl cursor-pointer transition-all ${metodoPago === 'transferencia' ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}>
+                      <Radio value="transferencia" className="w-full">
+                        <div className="flex items-center ml-2">
+                          <FaUniversity className="text-purple-600 text-xl mr-3" />
+                          <div>
+                            <div className="font-medium">Transferencia Bancaria</div>
+                            <div className="text-xs text-gray-500">Transferencia a cuenta bancaria</div>
+                          </div>
+                        </div>
+                      </Radio>
+                    </div>
+                  </div>
+                </Radio.Group>
+              )}
+            </div>
+            
+            <div className="flex justify-end mt-4 gap-3">
+              <Button 
+                onClick={() => !procesandoPago && setPagoModalVisible(false)} 
+                disabled={procesandoPago}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="primary" 
+                onClick={procesarPago} 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={procesandoPago}
+                loading={procesandoPago}
+              >
+                Confirmar Pago
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6">
+            <CheckCircleFilled style={{ fontSize: 64, color: '#52c41a' }} />
+            <div className="text-xl font-semibold mt-4">¡Pago completado!</div>
+            <div className="text-gray-500 mt-2 text-center">
+              Su compra ha sido procesada correctamente con {' '}
+              {metodoPago === 'efectivo' && 'Efectivo'}
+              {metodoPago === 'tarjeta' && 'Tarjeta de Crédito'}
+              {metodoPago === 'transferencia' && 'Transferencia Bancaria'}
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* Carrito Dropdown */}
       <div className="fixed top-20 right-10 z-50" ref={carritoRef}>
         <button
@@ -178,7 +343,7 @@ export default function ComprasUsuario({ user }) {
                 </div>
                 <button
                   className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded mt-4 float-right"
-                  onClick={realizarCompra}
+                  onClick={abrirModalPago}
                 >
                   Realizar compra
                 </button>

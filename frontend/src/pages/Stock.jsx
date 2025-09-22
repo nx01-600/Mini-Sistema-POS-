@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus, FaSearch } from "react-icons/fa";
+import { addGlobalStockNotification } from "../utils/globalNotifications";
 
 export default function Stock() {
   const [productos, setProductos] = useState([]);
@@ -52,14 +53,28 @@ export default function Stock() {
   };
 
   const handleSave = async (id) => {
+    const nuevoStock = Number(editData.stock);
+    
     await updateDoc(doc(db, "productos", id), {
       precio: Number(editData.precio),
-      stock: Number(editData.stock),
+      stock: nuevoStock,
     });
+    
+    // Verificar si el stock llega a 0 y crear notificación global
+    if (nuevoStock === 0) {
+      const productoRef = doc(db, "productos", id);
+      const prodSnap = await getDoc(productoRef);
+      const nombre = prodSnap.exists() ? prodSnap.data().nombre : "";
+      
+      // Agregar notificación global por id
+      await addGlobalStockNotification(id, nombre, "manual");
+      console.log("Notificación agregada para producto con stock 0:", nombre);
+    }
+    
     setProductos((prev) =>
       prev.map((p, i) =>
         i === editIndex
-          ? { ...p, precio: Number(editData.precio), stock: Number(editData.stock) }
+          ? { ...p, precio: Number(editData.precio), stock: nuevoStock }
           : p
       )
     );

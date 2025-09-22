@@ -18,6 +18,13 @@ function getFriendlyError(error) {
 }
 
 export default function SignupLogin() {
+  // Captcha tipo checkbox simulado
+  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
+  const resetCaptcha = () => {
+    setCaptchaChecked(false);
+    setCaptchaError("");
+  };
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,6 +63,12 @@ export default function SignupLogin() {
     if (signupData.password !== signupData.confirmPassword) {
       setError("Las contraseñas no coinciden.");
       setLoading(false);
+      return;
+    }
+    if (!captchaChecked) {
+      setCaptchaError("Por favor confirma que no eres un robot.");
+      setLoading(false);
+      return;
     }
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, signupData.email, signupData.password);
@@ -83,6 +96,12 @@ export default function SignupLogin() {
     setLoading(true);
     setError("");
     setSuccess("");
+    setCaptchaError("");
+    if (!captchaChecked) {
+      setCaptchaError("Por favor confirma que no eres un robot.");
+      setLoading(false);
+      return;
+    }
     try {
       const userCredential = await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
       const user = userCredential.user;
@@ -91,6 +110,7 @@ export default function SignupLogin() {
       const userDocSnap = await getDoc(userDocRef);
       const rol = userDocSnap.exists() ? userDocSnap.data().rol : "usuario";
       setSuccess("¡Inicio de sesión exitoso!");
+      resetCaptcha();
       if (rol === "admin") {
         navigate("/dashboard");
       } else {
@@ -98,6 +118,7 @@ export default function SignupLogin() {
       }
     } catch (err) {
       setError(getFriendlyError(err.message));
+      resetCaptcha();
     }
     setLoading(false);
   };
@@ -150,7 +171,7 @@ export default function SignupLogin() {
     <div className="bg-gray-50 min-h-screen flex justify-center items-start pt-16">
       <div className="container mx-auto px-4 ">
         <div className={`w-full max-w-lg mx-auto bg-white rounded-lg overflow-hidden shadow-2xl transition-all duration-500 flex flex-col ${
-              tab === "signup" ? "min-h-[600px]" : "min-h-[500px]"
+              tab === "signup" ? "min-h-[700px]" : "min-h-[600px]"
             }`}>
 
           <div className="text-center py-6 bg-gray-800 text-white rounded-t-lg">
@@ -190,6 +211,26 @@ export default function SignupLogin() {
                 }`}
               >
                 <form className="space-y-4" onSubmit={handleLogin}>
+                  {/* ...existing code... */}
+                  {/* Captcha tipo checkbox simulado estilo Google, debajo de los campos de texto */}
+                  <div className="w-full flex justify-center">
+                    <div className="flex items-center gap-3 mb-2 bg-white border border-gray-300 rounded shadow-sm px-4 py-3" style={{maxWidth:'340px', width:'100%'}}>
+                      <input
+                        type="checkbox"
+                        id="captcha-login"
+                        checked={captchaChecked}
+                        onChange={e => setCaptchaChecked(e.target.checked)}
+                        className="accent-blue-600 w-5 h-5 border-2 border-gray-400 rounded focus:ring-2 focus:ring-blue-500"
+                        style={{boxShadow:'0 1px 4px rgba(0,0,0,0.10)'}}
+                      />
+                      <label htmlFor="captcha-login" className="select-none text-base font-medium text-gray-700 flex items-center gap-2">
+                        <span className="inline-block"><i className="fas fa-robot text-blue-500 mr-1"></i></span>
+                        No soy un robot
+                      </label>
+                      <span className="ml-auto"><img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="Google" className="w-8 h-8" /></span>
+                    </div>
+                  </div>
+                  {captchaError && <div className="text-red-500 text-xs mb-2 text-center">{captchaError}</div>}
                   <div className="relative">
                     <input
                       type="email"
@@ -243,9 +284,9 @@ export default function SignupLogin() {
                   <div className="flex justify-center space-x-4">
                     <button
                       type="button"
-                      className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition flex items-center"
+                      className={`bg-gray-800 text-white px-4 py-2 rounded-md transition flex items-center ${(!captchaChecked || loading) ? 'opacity-60 cursor-not-allowed' : 'hover:bg-gray-700'}`}
                       onClick={handleGoogleLogin}
-                      disabled={loading}
+                      disabled={loading || !captchaChecked}
                     >
                       <i className="fab fa-google mr-2"></i> Google
                     </button>
@@ -261,6 +302,26 @@ export default function SignupLogin() {
                 }`}
               >
                 <form className="space-y-4" onSubmit={handleSignup}>
+                  {/* ...existing code... */}
+                  {/* Captcha tipo checkbox simulado estilo Google, debajo de los campos de texto */}
+                  <div className="w-full flex justify-center">
+                    <div className="flex items-center gap-3 mb-2 bg-white border border-gray-300 rounded shadow-sm px-4 py-3" style={{maxWidth:'340px', width:'100%'}}>
+                      <input
+                        type="checkbox"
+                        id="captcha-signup"
+                        checked={captchaChecked}
+                        onChange={e => setCaptchaChecked(e.target.checked)}
+                        className="accent-blue-600 w-5 h-5 border-2 border-gray-400 rounded focus:ring-2 focus:ring-blue-500"
+                        style={{boxShadow:'0 1px 4px rgba(0,0,0,0.10)'}}
+                      />
+                      <label htmlFor="captcha-signup" className="select-none text-base font-medium text-gray-700 flex items-center gap-2">
+                        <span className="inline-block"><i className="fas fa-robot text-blue-500 mr-1"></i></span>
+                        No soy un robot
+                      </label>
+                      <span className="ml-auto"><img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="Google" className="w-8 h-8" /></span>
+                    </div>
+                  </div>
+                  {captchaError && <div className="text-red-500 text-xs mb-2 text-center">{captchaError}</div>}
                   <div className="relative">
                     <input
                       type="text"

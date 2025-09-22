@@ -2,7 +2,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import Topbar from "./components/Topbar.jsx";
-import TestFirebase from "./pages/TestFirebase.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Stock from "./pages/Stock";
@@ -12,6 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 import ComprasUsuario from "./pages/ComprasUsuario";
+import HistorialCompras from "./pages/HistorialCompras.jsx";
 
 // Layout para páginas protegidas
 function ProtectedLayout({ children }) {
@@ -74,30 +74,9 @@ function App() {
           {/* Rutas para admin */}
           {rol === "admin" && (
             <>
-              <Route
-                path="/dashboard/*"
-                element={
-                  <ProtectedLayout>
-                    <Dashboard />
-                  </ProtectedLayout>
-                }
-              />
-              <Route
-                path="/test-firebase"
-                element={
-                  <ProtectedLayout>
-                    <TestFirebase />
-                  </ProtectedLayout>
-                }
-              />
-              <Route
-                path="/stock"
-                element={
-                  <ProtectedLayout>
-                    <Stock />
-                  </ProtectedLayout>
-                }
-              />
+              <Route path="/dashboard/*" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+              <Route path="/stock" element={<ProtectedLayout><Stock /></ProtectedLayout>} />
+              <Route path="/historial-compras" element={<ProtectedLayout><HistorialCompras user={user} rol={rol} /></ProtectedLayout>} />
               <Route
                 path="/reportes-ventas"
                 element={
@@ -125,14 +104,8 @@ function App() {
           {/* Rutas para usuario */}
           {rol === "usuario" && (
             <>
-              <Route
-                path="/compras"
-                element={<ComprasUsuario user={user} />}
-              />
-              <Route
-                path="*"
-                element={<ComprasUsuario user={user} />}
-              />
+              <Route path="/compras" element={<ProtectedLayout><ComprasUsuario user={user} /></ProtectedLayout>} />
+              <Route path="/historial-compras" element={<ProtectedLayout><HistorialCompras user={user} rol={rol} /></ProtectedLayout>} />
             </>
           )}
         </Routes>

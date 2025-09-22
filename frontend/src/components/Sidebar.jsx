@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FaTachometerAlt, FaBoxes, FaFlask, FaChartBar, FaShoppingCart } from "react-icons/fa";
+import { FaTachometerAlt, FaBoxes, FaChartBar, FaShoppingCart } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -13,11 +13,12 @@ export default function Sidebar({ rol }) {
       { path: "/stock", label: "Stock", icon: <FaBoxes /> },
       { path: "/reportes-ventas", label: "Reportes de Ventas", icon: <FaChartBar /> },
       { path: "/compras", label: "Comprar productos", icon: <FaShoppingCart /> },
-      { path: "/test-firebase", label: "Test Firebase", icon: <FaFlask /> },
+      { path: "/historial-compras", label: "Historial de Compras", icon: <FaChartBar /> },
     ];
   } else if (rol === "usuario") {
     routes = [
       { path: "/compras", label: "Comprar productos", icon: <FaShoppingCart /> },
+      { path: "/historial-compras", label: "Historial de Compras", icon: <FaChartBar /> },
     ];
   }
   if (!rol) return null;

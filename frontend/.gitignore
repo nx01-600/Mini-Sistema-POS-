@@ -18,6 +18,20 @@ dist-ssr
 *.local
 .env
 
+# Playwright
+tests/.auth/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Playwright
+/test-results/
+/blob-report/
+/playwright-report/
+/tests/screenshots/
+/tests/videos/
+*.trace
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -29,3 +43,10 @@ dist-ssr
 *.sln
 *.sw?
 *.sw?
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

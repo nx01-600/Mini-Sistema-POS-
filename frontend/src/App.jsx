@@ -28,7 +28,7 @@ function ProtectedLayout({ children }) {
 
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/";
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
   const [user, setUser] = useState(null);
   const [rol, setRol] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -70,6 +70,7 @@ function App() {
         <Routes>
           {/* Ruta raíz -> Login */}
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
           {/* Rutas para admin */}
           {rol === "admin" && (

@@ -182,9 +182,6 @@ npm run test:report        → Ver reporte HTML último
 
 npm run test:chrome        → Solo Chrome
 npm run test:firefox       → Solo Firefox
-npm run test:webkit        → Solo Safari
-
-npm run test:report        → Ver último reporte HTML
 
 ```
 

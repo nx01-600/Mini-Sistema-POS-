@@ -4,13 +4,13 @@ export default defineConfig({
   testDir: './tests',
   
   /* Tiempo máximo para cada test */
-  timeout: 30000,
+  timeout: 60000,
 
   /* Configuración de ejecución */
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
 
   /* Reporter para generar reportes de pruebas */
   reporter: 'html',

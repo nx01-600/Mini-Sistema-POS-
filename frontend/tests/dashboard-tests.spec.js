@@ -8,7 +8,7 @@ const loginAsUser = async (page, email = 'mcaguz11@gmail.com', password = 'Hola1
   await loginForm.locator('input[name="password"]').fill(password);
   await loginForm.locator('#captcha-login').check();
   await loginForm.locator('button[type="submit"]').click();
-  await page.waitForURL(/.*\/(dashboard|compras)$/);
+  await page.waitForURL(/.*\/(dashboard|compras)$/, { timeout: 30000 });
 };
 
 test.describe('Pruebas del Dashboard', () => {

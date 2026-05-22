@@ -14,7 +14,7 @@ export const loginAsUser = async (page, email = 'mcaguz11@gmail.com', password =
 
   await loginForm.locator('button[type="submit"]').click();
 
-  await page.waitForURL(/.*\/(dashboard|compras)$/);
+  await page.waitForURL(/.*\/(dashboard|compras)$/, { timeout: 30000 });
 };
 // opcional (pero útil)
 export const goToCompras = async (page) => {

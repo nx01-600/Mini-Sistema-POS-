@@ -116,26 +116,14 @@ frontend/
 ├── tests/
 │   ├── helpers.js               ← Funciones auxiliares reutilizables
 │   ├── homepage.spec.js         ← Test 1: Página principal
-│   ├── login.spec.js            ← Test 2: Formulario login
+│   ├── login.spec.js            ← Test 2: Fo
 │   ├── navigation.spec.js       ← Test 3: Navegación
 │   ├── ventas.spec.js           ← Test 4: Módulo de ventas
 │   ├── template.spec.js         ← Template para nuevos tests
 │   └── screenshots/             ← Capturas automáticas
 │       └── (vacío inicialmente)
 │
-│
-└── src/
-    ├── pages/
-    │   ├── Login.jsx          ← Interactuada por: login.spec.js
-    │   ├── Dashboard.jsx      ← Interactuada por: homepage/ventas
-    │   ├── GenerarVentasDemo  ← Interactuada por: ventas.spec.js
-    │   └── ...
-    ├── components/
-    │   ├── Sidebar.jsx        ← Interactuada por: navigation.spec.js
-    │   ├── Topbar.jsx         ← Interactuada por: navigation.spec.js
-    │   └── ...
-    └── ...
-```
+...
 
 ## Flujo de un test típico
 
